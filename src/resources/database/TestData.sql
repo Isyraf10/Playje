@@ -23,4 +23,3 @@ INSERT INTO gaming_station (station_id, pricing_id, station_name, status, specif
 ('PS001', 'P001', 'PS5 Station 1', 'available', 'Sony PS5 + 2 DualSense'),
 ('PS002', 'P001', 'PS5 Station 2', 'occupied', 'Sony PS5 + 2 DualSense'),
 ('CS001', 'P002', 'Logitech G29 Simulator 1', 'available', 'Logitech G29 Wheel + 1 Playseat');
-

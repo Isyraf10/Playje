@@ -9,7 +9,7 @@ public class DBConnection {
             "jdbc:mysql://localhost:3306/umt_gaming_room";
 
     private static final String USER = "root";
-    private static final String PASSWORD = "";
+    private static final String PASSWORD = "admin";
 
     public static Connection getConnection() {
 

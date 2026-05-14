@@ -2,14 +2,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.lab.model.User, com.lab.model.Booking, com.lab.dao.BookingDAO, java.util.List" %>
 <%
-    // 1. Session Check - Pastikan student dah login
+    // 1. Session Check
     User currentUser = (User) session.getAttribute("currentUser");
     if (currentUser == null) {
         response.sendRedirect("../login.jsp");
         return;
     }
 
-    // 2. Tarik data booking history dari DB guna DAO
+    // 2. Fetch booking history
     BookingDAO bDao = new BookingDAO();
     List<Booking> myBookings = bDao.getBookingsByStudent(currentUser.getUserId());
 %>
@@ -20,10 +20,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard - Playje</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
 </head>
-<body style="display: block; overflow-y: auto;"> <div class="container-dashboard">
-        <%@ include file="../header.jsp" %>
-        <div class="glass-card" style="max-width: 100%; margin-bottom: 30px; text-align: left; padding: 30px;">
+<body style="display: block; background-color: #1a1a2e; overflow-y: auto;"> 
+    <%@ include file="../header.jsp" %>
+    
+    <div class="container" style="margin-top: 80px;">
+        
+        <div class="card" style="margin-bottom: 30px; text-align: left;">
             <h2 style="color: #fff;">Hello, <%= currentUser.getUsername() %>!</h2>
             <p class="subtitle" style="margin-bottom: 20px;">Ready for your next gaming session?</p>
             <button class="btn-primary" onclick="location.href='booking.jsp'" style="width: auto; padding: 12px 30px;">
@@ -32,64 +36,62 @@
         </div>
 
         <% if ("pending".equals(request.getParameter("status"))) { %>
-            <div class="success-msg">
-                Booking submitted! Sila tunggu approval dari AJK Bertugas.
+            <div class="alert" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4);">
+                ✅ Booking submitted! Sila tunggu approval dari AJK Bertugas.
+            </div>
+        <% } else if ("db_fail".equals(request.getParameter("error"))) { %>
+            <div class="alert" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">
+                ⚠️ <strong>Database Error!</strong> Booking failed to save.
+            </div>
+        <% } else if ("system_crash".equals(request.getParameter("error"))) { %>
+            <div class="alert" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">
+                ⚠️ <strong>System Crash!</strong> Please upload a standard .JPG or .PNG file.
             </div>
         <% } %>
 
-        <div class="glass-card" style="max-width: 100%; padding: 30px; text-align: left;">
+        <div class="card" style="text-align: left;">
             <h3 style="margin-bottom: 20px; color: #c77dff;">My Booking History</h3>
             
             <div style="overflow-x: auto;">
-                <table class="booking-table">
+                <table class="staff-table">
                     <thead>
                         <tr>
                             <th>Station</th>
                             <th>Slot Time</th>
                             <th>Booking Date</th>
                             <th>Total Price</th>
-                            <th>Status</th>
+                            <th style="text-align: center;">Status</th>
                         </tr>
                     </thead>
                     <tbody>
-    <% if(myBookings == null || myBookings.isEmpty()) { %>
-        <tr>
-            <td colspan="5" style="text-align:center; padding: 40px; color: #999;">
-                Belum ada history booking. Jom main!
-            </td>
-        </tr>
-            <% } else { 
-                // 1. Letak SimpleDateFormat kat sini (Import java.text.SimpleDateFormat kat atas sekali JSP)
-                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm a");
-
-                for(Booking b : myBookings) { 
-                    String formattedDate = sdf.format(b.getBookingDate());
-                    String statusClass = b.getStatus().toLowerCase();
-            %>
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <td style="padding: 15px;"><strong><%= b.getStationName() %></strong></td>
-                    <td style="padding: 15px;"><%= b.getSlotTime() %></td>
-                    <td style="padding: 15px;"><%= formattedDate %></td>
-                    <td style="padding: 15px; font-weight: bold;">RM <%= String.format("%.2f", b.getTotalPrice()) %></td>
-                    <td style="padding: 15px; text-align: center;">
-                        <span class="badge <%= statusClass %>" style="
-                            padding: 5px 12px; 
-                            border-radius: 15px; 
-                            font-size: 0.8rem;
-                            <%= statusClass.equals("pending") ? "background: #f59e0b; color: #000;" : 
-                               statusClass.equals("approved") ? "background: #22c55e; color: #fff;" : 
-                               "background: #ef4444; color: #fff;" %>
-                        ">
-                            <%= b.getStatus().toUpperCase() %>
-                        </span>
-                    </td>
-                </tr>
-            <% } } %>
-        </tbody>
+                    <% if(myBookings == null || myBookings.isEmpty()) { %>
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding: 40px; color: #999;">
+                                Belum ada history booking. Jom main!
+                            </td>
+                        </tr>
+                    <% } else { 
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm a");
+                        for(Booking b : myBookings) { 
+                            String formattedDate = sdf.format(b.getBookingDate());
+                            String statusClass = b.getStatus().toLowerCase();
+                    %>
+                        <tr>
+                            <td><strong><%= b.getStationName() %></strong></td>
+                            <td><%= b.getSlotTime() %></td>
+                            <td><%= formattedDate %></td>
+                            <td style="font-weight: bold; color: #fbbf24;">RM <%= String.format("%.2f", b.getTotalPrice()) %></td>
+                            <td style="text-align: center;">
+                                <span class="badge status-<%= statusClass %>">
+                                    <%= b.getStatus() %>
+                                </span>
+                            </td>
+                        </tr>
+                    <% } } %>
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
-
 </body>
 </html>

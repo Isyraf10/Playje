@@ -94,15 +94,26 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* Status Badge bagi nampak moden */
+/* =========================================
+   Status Badges (Standardized for all modules)
+   ========================================= */
 .badge {
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: bold;
     display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
+/* Station Statuses */
 .status-available { background: #22c55e; color: #fff; }
 .status-occupied { background: #f59e0b; color: #fff; }
 .status-maintenance { background: #ef4444; color: #fff; }
+
+/* Student Booking Statuses */
+.status-pending { background: #f59e0b; color: #000; }
+.status-approved { background: #22c55e; color: #fff; }
+.status-completed { background: #3b82f6; color: #fff; }
+.status-rejected, .status-cancelled { background: #ef4444; color: #fff; }

@@ -224,11 +224,11 @@ public boolean rejectAndReleaseSlot(String bookingId, String stationId) {
          PreparedStatement ps = conn.prepareStatement(query)) {
         
         ps.setString(1, bookingId);
-        return ps.executeUpdate() > 0;
+            return ps.executeUpdate() > 0;
         
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
-}
 }
