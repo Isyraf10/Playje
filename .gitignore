@@ -1,0 +1,19 @@
+# --- NetBeans Specific ---
+# Folder build & dist ni paling penting kena ignore sbb dia auto-generate
+build/
+dist/
+
+# Folder nbproject selalunya ada private setting kau
+# Kita simpan project.xml tapi ignore private folder
+nbproject/private/
+
+# --- Java & OS Specific ---
+# Ignore compiled java files
+*.class
+
+# Ignore log files
+*.log
+
+# Ignore Windows system files
+Thumbs.db
+Desktop.ini
