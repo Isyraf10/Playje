@@ -15,14 +15,17 @@ public class LoginServlet extends HttpServlet {
 
     private UserDAO userDAO;
 
+    @Override
     public void init() {
         userDAO = new UserDAO();
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String email = request.getParameter("email");
+        // TASK 1 FIX: Force lowercase for Email to prevent case-sensitive login errors
+        String email = request.getParameter("email").toLowerCase();
         String password = request.getParameter("password");
 
         User user = userDAO.authenticateUser(email, password);
@@ -51,23 +54,24 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect("login.jsp?error=1");
         }
     }
+    
     @Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response) 
-        throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
     
-    String action = request.getParameter("action");
+        String action = request.getParameter("action");
 
-    if ("logout".equals(action)) {
-        // 1. Buang session data
-        request.getSession().invalidate();
+        if ("logout".equals(action)) {
+            // 1. Buang session data
+            request.getSession().invalidate();
+            
+            // 2. Redirect balik ke login page
+            // Pastikan path login.jsp betul (kalau Servlet kat root, guna "login.jsp")
+            response.sendRedirect("login.jsp");
+            return;
+        }
         
-        // 2. Redirect balik ke login page
-        // Pastikan path login.jsp betul (kalau Servlet kat root, guna "login.jsp")
+        // Kalau orang saja-saja masuk URL tanpa action=logout, hantar ke login juga
         response.sendRedirect("login.jsp");
-        return;
     }
-    
-    // Kalau orang saja-saja masuk URL tanpa action=logout, hantar ke login juga
-    response.sendRedirect("login.jsp");
-}
 }

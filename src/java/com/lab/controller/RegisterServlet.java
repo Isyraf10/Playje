@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package com.lab.controller;
 
 import com.lab.util.DBConnection;
@@ -16,28 +12,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author batrisyia aliza
- */
-
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String matricNo = request.getParameter("matricNo");
+        
+        // TASK 1 FIX: Force uppercase for Matric No and lowercase for Email
+        String matricNo = request.getParameter("matricNo").toUpperCase();
         String username = request.getParameter("username");
-        String email = request.getParameter("email");
+        String email = request.getParameter("email").toLowerCase();
         String faculty = request.getParameter("faculty");
         String password = request.getParameter("password");
         
@@ -57,7 +42,7 @@ public class RegisterServlet extends HttpServlet {
             psUser = conn.prepareStatement(sqlUser);
             psUser.setString(1, generatedUserId);
             psUser.setString(2, username);
-            psUser.setString(3, email);
+            psUser.setString(3, email); // Will now always save as lowercase
             psUser.setString(4, password);
             psUser.executeUpdate();
             
@@ -65,7 +50,7 @@ public class RegisterServlet extends HttpServlet {
             String sqlProfile = "INSERT INTO student_profile (student_id, matric_no, faculty, is_member) VALUES (?, ?, ?, 1)";
             psProfile = conn.prepareStatement(sqlProfile);
             psProfile.setString(1, generatedUserId); 
-            psProfile.setString(2, matricNo);        
+            psProfile.setString(2, matricNo); // Will now always save as UPPERCASE       
             psProfile.setString(3, faculty);
             psProfile.executeUpdate();
             
@@ -93,5 +78,4 @@ public class RegisterServlet extends HttpServlet {
             } catch (SQLException e) { e.printStackTrace(); }
         }
     }
-
 }
