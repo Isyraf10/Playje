@@ -115,12 +115,12 @@
                         No new notifications
                     </div>
                 <% } else {
-                    for(String msg : headerNotifications) { %>
-                        <div class="notif-item"><%= msg %></div>
+                    for(String notifMsg : headerNotifications) { %> 
+                        <div class="notif-item"><%= notifMsg %></div>
                     <% } 
                 } %>
             </div>
-        </div>
+        </div> 
 
         <span style="font-size: 0.9rem; color: #adb5bd; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 20px;">
             Role: <strong><%= user.getRole().toUpperCase() %></strong>
