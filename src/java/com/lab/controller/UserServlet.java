@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/UserServlet")
 public class UserServlet extends HttpServlet {
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
@@ -20,17 +21,28 @@ public class UserServlet extends HttpServlet {
 
         try {
             if ("registerAjk".equals(action)) {
-                // 1. Ambil data dari form addAjk.jsp
                 String userId = request.getParameter("userId");
                 String username = request.getParameter("username");
                 String email = request.getParameter("email");
                 String password = request.getParameter("password");
                 String position = request.getParameter("position");
 
+                // STEP 1: Check validation duplicate No Matrik atau Email dulu
+                if (uDao.isUserExist(userId, email)) {
+                    response.sendRedirect("rolesAdvisor/dashboardAdvisor.jsp?msg=duplicate");
+                    return; 
+                }
+
+                // STEP 2: Check validation kuota tunggal untuk Majlis Tertinggi (MT)
+                if (uDao.isMajlisTertinggiFull(position)) {
+                    response.sendRedirect("rolesAdvisor/dashboardAdvisor.jsp?msg=quota_full");
+                    return; 
+                }
+
+                // STEP 3: Proceed register kalau lepas tapisan
                 User newUser = new User(userId, username, email, password, "ajk");
                 newUser.setPosition(position);
 
-                // 2. Simpan ke database
                 boolean success = uDao.registerAjkWithProfile(newUser);
 
                 if (success) {
@@ -40,11 +52,16 @@ public class UserServlet extends HttpServlet {
                 }
 
             } else if ("updateAjk".equals(action)) {
-                // 1. Ambil data dari editAjk.jsp
                 String userId = request.getParameter("userId");
                 String username = request.getParameter("username");
                 String email = request.getParameter("email");
                 String position = request.getParameter("position");
+
+                // ?GATEKEEPER UPDATE: Menghalang pertukaran jawatan jika kuota jawatan MT baru tersebut dah penuh
+                if (uDao.isMajlisTertinggiFullOnUpdate(position, userId)) {
+                    response.sendRedirect("rolesAdvisor/dashboardAdvisor.jsp?msg=quota_full");
+                    return; // Disekat serta-merta
+                }
 
                 User updatedUser = new User();
                 updatedUser.setUserId(userId);
@@ -52,7 +69,6 @@ public class UserServlet extends HttpServlet {
                 updatedUser.setEmail(email);
                 updatedUser.setPosition(position);
 
-                // 2. Update database
                 boolean success = uDao.updateAjkWithProfile(updatedUser);
 
                 if (success) {
@@ -63,7 +79,7 @@ public class UserServlet extends HttpServlet {
 
             } else if ("deleteAjk".equals(action)) {
                 String userId = request.getParameter("userId");
-                boolean success = uDao.deleteUser(userId); // Pastikan delete handle cascading dlm DB/DAO
+                boolean success = uDao.deleteUser(userId);
 
                 response.sendRedirect("rolesAdvisor/dashboardAdvisor.jsp?msg=deleted");
             }
