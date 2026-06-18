@@ -10,7 +10,7 @@
 <body>
     <div class="glass-card auth-card">
 
-        <img src="" alt="Logo" class="brand-logo">
+        <img src="images/logo.jpg" alt="Logo" class="brand-logo">
         
         <h2></h2>
         <p class="subtitle">Login</p>
