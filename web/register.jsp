@@ -23,9 +23,11 @@
         <p class="subtitle">Join the UMT Gaming Lounge</p>
 
         <% if ("duplicate".equals(request.getParameter("error"))) { %>
-            <div class="error-alert">⚠️ Matric number or Email already exists!</div>
+            <div class="error-alert"> Matric number or Email already exists!</div>
         <% } else if ("1".equals(request.getParameter("error"))) { %>
-            <div class="error-alert">⚠️ Registration failed. Please try again later.</div>
+            <div class="error-alert"> Registration failed. Please try again later.</div>
+        <% } else if ("invalid_domain".equals(request.getParameter("error"))) { %>
+            <div class="error-alert">Access Denied! Please use an official UMT student email address only (@ocean.umt.edu.my).</div>
         <% } %>
 
         <form action="<%= request.getContextPath() %>/RegisterServlet" method="POST">
@@ -41,16 +43,23 @@
             
             <div class="input-group">
                 <label>UMT EMAIL</label>
-                <input type="email" name="email" required placeholder="s75516@ocean.umt.edu.my">
+                <input type="email" 
+                       name="email" 
+                       required 
+                       pattern="[a-zA-Z0-9._%+-]+@ocean\.umt\.edu\.my" 
+                       title="Sila gunakan emel rasmi pelajar UMT sahaja (@ocean.umt.edu.my)" 
+                       placeholder="s75516@ocean.umt.edu.my">
             </div>
 
             <div class="input-group">
                 <label>FACULTY</label>
                 <select name="faculty" required style="width: 100%; padding: 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
                     <option value="" style="color: #000;">-- Select Faculty --</option>
-                    <option value="Faculty of Computer Science and Mathematics" style="color: #000;">Faculty of Computer Science and Mathematics</option>
-                    <option value="Faculty of Maritime Studies" style="color: #000;">Faculty of Maritime Studies</option>
-                    <option value="Faculty of Science and Marine Environment" style="color: #000;">Faculty of Science and Marine Environment</option>
+                    <option value="Faculty of Computer Science and Mathematics" style="color: #000;">Faculty of Computer Science and Mathematics (FSKM)</option>
+                    <option value="Faculty of Science and Marine Environment" style="color: #000;">Faculty of Science and Marine Environment (FSSM)</option>
+                    <option value="Faculty of Maritime Studies" style="color: #000;">Faculty of Maritime Studies (FPM)</option>
+                    <option value="Faculty of Fisheries and Food Science" style="color: #000;">Faculty of Fisheries and Food Science (FPSM)</option>
+                    <option value="Faculty of Business, Economics and Social Development" style="color: #000;">Faculty of Business, Economics and Social Development (FPEP)</option>
                     <option value="Other" style="color: #000;">Other</option>
                 </select>
             </div>

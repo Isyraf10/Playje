@@ -6,6 +6,7 @@ import com.lab.model.User;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +40,7 @@ public class BookingServlet extends HttpServlet {
 
             // 2. Ambil data asas dari paymentProof.jsp
             String stationId = request.getParameter("stationId");
-            String bookingDate = request.getParameter("bookingDate");
+            String bookingDateStr = request.getParameter("bookingDate");
             String[] selectedSlots = request.getParameterValues("slotId");
             
             // Safety check kalau slotId tak sampai
@@ -47,6 +48,23 @@ public class BookingServlet extends HttpServlet {
                 response.sendRedirect("rolesStudent/booking.jsp?error=no_slots");
                 return;
             }
+
+            // --- DATE CONVERSION LOGIC ---
+            // Parse targeted session date passed through the hidden wizard inputs
+            Timestamp targetSessionDate = null;
+            if (bookingDateStr != null && !bookingDateStr.trim().isEmpty()) {
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    java.util.Date parsedDate = sdf.parse(bookingDateStr);
+                    targetSessionDate = new Timestamp(parsedDate.getTime());
+                } catch (Exception e) {
+                    System.err.println("Failed parsing bookingDate string: " + bookingDateStr);
+                    targetSessionDate = new Timestamp(System.currentTimeMillis());
+                }
+            } else {
+                targetSessionDate = new Timestamp(System.currentTimeMillis());
+            }
+            // ------------------------------
 
             // 3. Handle File Upload (Payment Proof)
             Part filePart = request.getPart("paymentProof");
@@ -66,17 +84,18 @@ public class BookingServlet extends HttpServlet {
 
             // 4. Bina List of Booking Objects untuk Batch Insert
             List<Booking> bookingList = new ArrayList<>();
-            Timestamp currentNow = new Timestamp(System.currentTimeMillis());
             double pricePerSlot = 7.00; // Harga default per slot
 
             for (String sId : selectedSlots) {
                 Booking b = new Booking();
-                // Pastikan column booking_id di DB adalah VARCHAR(50)
                 b.setBookingId("BK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
                 b.setStudentId(user.getUserId());
                 b.setStationId(stationId);
                 b.setSlotId(sId);
-                b.setBookingDate(currentNow);
+                
+                // FIXED: Now accurately saves the target schedule date (e.g. 21/6) instead of today's date!
+                b.setBookingDate(targetSessionDate);
+                
                 b.setTotalPrice(pricePerSlot); 
                 b.setPaymentProofPath(dbFilePath);
                 
@@ -97,7 +116,6 @@ public class BookingServlet extends HttpServlet {
             }
 
         } catch (Exception e) {
-            // Print error kat console supaya kau boleh nampak kat mana sangkut
             System.err.println("CRITICAL ERROR IN BOOKINGSERVLET:");
             e.printStackTrace();
             

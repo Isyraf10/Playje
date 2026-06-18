@@ -19,12 +19,28 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        // TASK 1 FIX: Force uppercase for Matric No and lowercase for Email
-        String matricNo = request.getParameter("matricNo").toUpperCase();
+        // 1. Retrieve and normalize standard input parameters
+        String matricNo = request.getParameter("matricNo");
         String username = request.getParameter("username");
-        String email = request.getParameter("email").toLowerCase();
+        String email = request.getParameter("email");
         String faculty = request.getParameter("faculty");
         String password = request.getParameter("password");
+        
+        // Normalize Matric No to UPPERCASE
+        if (matricNo != null) {
+            matricNo = matricNo.trim().toUpperCase();
+        }
+        
+        // 2. STRICT GUARD VALIDATION: Enforce official UMT domain email rules
+        if (email != null) {
+            email = email.trim().toLowerCase(); // Will now always handle domain string comparison as lowercase
+        }
+        
+        if (email == null || !email.endsWith("@ocean.umt.edu.my")) {
+            // Halt execution and return an explicit error parameter back to the UI layout
+            response.sendRedirect("register.jsp?error=invalid_domain");
+            return; 
+        }
         
         // Auto-generate surrogate key for users table
         String generatedUserId = "STU-" + UUID.randomUUID().toString().substring(0, 5).toUpperCase();

@@ -32,7 +32,7 @@
                 
                 <div class="input-group">
                     <label>Station Category</label>
-                    <select name="stationId" required class="form-select">
+                    <select name="stationId" required class="form-select" style="width: 100%; padding: 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
                         <option value="" style="color: #000;">-- Choose Station --</option>
                         <% for(Station s : stations) { %>
                             <option value="<%= s.getStationId() %>" style="color: #000;">
@@ -42,9 +42,9 @@
                     </select>
                 </div>
 
-                <div class="input-group">
+                <div class="input-group" style="margin-top: 20px;">
                     <label>Booking Date</label>
-                    <input type="date" name="bookingDate" id="datePicker" required class="form-select">
+                    <input type="date" name="bookingDate" id="datePicker" required class="form-select" style="width: 100%; padding: 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
                 </div>
 
                 <div style="display: flex; gap: 15px; margin-top: 35px;">
@@ -57,8 +57,7 @@
     </div>
 
     <script>
-        // Pro-tip: This script accounts for the Malaysia (+8) Timezone. 
-        // Standard Date() sometimes gets the UTC date, which might accidentally lock students out of today's slots!
+        // Accounts for the Malaysia (+8) Timezone normalization
         const tzOffset = (new Date()).getTimezoneOffset() * 60000; 
         const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
         document.getElementById('datePicker').min = localISOTime;
