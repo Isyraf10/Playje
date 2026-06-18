@@ -19,10 +19,12 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        // TASK 1 FIX: Force uppercase for Matric No and lowercase for Email
+        String matricNo = request.getParameter("matricNo").toUpperCase();
         // 1. Retrieve and normalize standard input parameters
         String matricNo = request.getParameter("matricNo");
         String username = request.getParameter("username");
-        String email = request.getParameter("email");
+        String email = request.getParameter("email").toLowerCase();
         String faculty = request.getParameter("faculty");
         String password = request.getParameter("password");
         
