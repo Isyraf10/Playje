@@ -21,8 +21,7 @@
         );
     }
 
-    // --- 2. NEW: AUTOMATIC AJK APPROVAL/REJECT STATUS CHECKER ---
-    // Fetch bookings to check if any have been updated by AJK but haven't notified yet
+    // --- 2. AUTOMATIC AJK APPROVAL/REJECT STATUS CHECKER ---
     List<Booking> currentBookings = bDao.getBookingsByStudent(currentUser.getUserId());
     List<String> existingNotifications = autoNotifDao.getLatestNotifications(currentUser.getUserId());
     
@@ -112,14 +111,11 @@
                             </td>
                         </tr>
                     <% } else { 
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm a");
+                        // UPDATED: Standard calendar date format structure without timestamps
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
                         for(Booking b : myBookings) { 
-                            // Safety check to avoid NullPointerException if date is missing in DB
-                            String formattedDate = "N/A";
-                            if (b.getBookingDate() != null) {
-                                formattedDate = sdf.format(b.getBookingDate());
-                            }
-                            String statusClass = b.getStatus() != null ? b.getStatus().toLowerCase() : "pending";
+                            String formattedDate = b.getBookingDate() != null ? sdf.format(b.getBookingDate()) : "N/A";
+                            String statusClass = b.getStatus().toLowerCase();
                     %>
                         <tr>
                             <td><strong><%= b.getStationName() %></strong></td>
