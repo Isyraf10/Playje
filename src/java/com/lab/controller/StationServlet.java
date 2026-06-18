@@ -19,6 +19,7 @@ public class StationServlet extends HttpServlet {
         StationDAO dao = new StationDAO();
 
         try {
+            // YOUR AJK MODULE ACTION: ADD NEW STATION
             if ("add".equals(action)) {
                 Station s = new Station();
                 s.setStationId(request.getParameter("stationId"));
@@ -28,11 +29,15 @@ public class StationServlet extends HttpServlet {
                 s.setStatus(request.getParameter("status"));
 
                 if (dao.addStation(s)) {
-                    response.sendRedirect("rolesAjk/dashboardAjk.jsp?msg=added");
+                    // Updated with context pathing to ensure it drops into your correct AJK dashboard folder
+                    response.sendRedirect(request.getContextPath() + "/rolesAjk/dashboardAjk.jsp?msg=added");
                 } else {
-                    response.sendRedirect("rolesAjk/addStation.jsp?error=failed");
+                    response.sendRedirect(request.getContextPath() + "/rolesAjk/addStation.jsp?error=failed");
                 }
             }
+           
+            // YOUR AJK MODULE ACTION: UPDATE STATION
+            
             else if ("update".equals(action)) {
                 Station s = new Station();
                 s.setStationId(request.getParameter("stationId"));
@@ -42,22 +47,26 @@ public class StationServlet extends HttpServlet {
                 s.setStatus(request.getParameter("status"));
 
                 if (dao.updateStation(s)) {
-                    response.sendRedirect("rolesAjk/dashboardAjk.jsp?msg=updated");
+                    response.sendRedirect(request.getContextPath() + "/rolesAjk/dashboardAjk.jsp?msg=updated");
                 } else {
-                    response.sendRedirect("rolesAjk/editStation.jsp?id=" + s.getStationId() + "&error=failed");
+                    response.sendRedirect(request.getContextPath() + "/rolesAjk/editStation.jsp?id=" + s.getStationId() + "&error=failed");
                 }
             } 
+            
+           
+            // YOUR AJK MODULE ACTION: DELETE STATION
+            
             else if ("delete".equals(action)) {
                 String id = request.getParameter("stationId");
                 if (dao.deleteStation(id)) {
-                    response.sendRedirect("rolesAjk/dashboardAjk.jsp?msg=deleted");
+                    response.sendRedirect(request.getContextPath() + "/rolesAjk/dashboardAjk.jsp?msg=deleted");
                 } else {
-                    response.sendRedirect("rolesAjk/dashboardAjk.jsp?error=delete_failed");
+                    response.sendRedirect(request.getContextPath() + "/rolesAjk/dashboardAjk.jsp?error=delete_failed");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("error.jsp");
+            response.sendRedirect(request.getContextPath() + "/error.jsp");
         }
     }
 }
