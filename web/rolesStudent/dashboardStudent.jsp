@@ -2,7 +2,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.lab.model.User, com.lab.model.Booking, com.lab.dao.BookingDAO, com.lab.dao.NotificationDAO, java.util.List" %>
 <%
-    // 1. Session Check
+    // 1. Session Check (Semakan Sesi Pengguna)
     User currentUser = (User) session.getAttribute("currentUser");
     if (currentUser == null) {
         response.sendRedirect("../login.jsp");
@@ -13,6 +13,7 @@
     BookingDAO bDao = new BookingDAO();
 
     // --- 1. AUTO-GENERATE NOTIFICATION ON SUCCESSFUL BOOKING ---
+    // Menjana notifikasi secara automatik jika parameter status daripada URL adalah 'pending'
     String statusParam = request.getParameter("status");
     if ("pending".equals(statusParam)) {
         autoNotifDao.createNotification(
@@ -21,19 +22,29 @@
         );
     }
 
+<<<<<<< Updated upstream
     // --- 2. NEW: AUTOMATIC AJK APPROVAL/REJECT STATUS CHECKER ---
     // Fetch bookings to check if any have been updated by AJK but haven't notified yet
     List<Booking> currentBookings = bDao.getBookingsByStudent(currentUser.getUserId());
+=======
+    // --- 2. AUTOMATIC AJK APPROVAL/REJECT STATUS CHECKER ---
+    // Menyemak status tempahan semasa untuk dimasukkan ke dalam jadual notifikasi
+    List<Booking> currentBookings = null;
+    try {
+        currentBookings = bDao.getBookingsByStudent(currentUser.getUserId());
+    } catch(Exception e) {
+        System.out.println("DAO Method not compiled yet: " + e.getMessage());
+    }
+
+>>>>>>> Stashed changes
     List<String> existingNotifications = autoNotifDao.getLatestNotifications(currentUser.getUserId());
     
     if (currentBookings != null) {
         for (Booking b : currentBookings) {
             String bId = b.getBookingId();
-            String status = b.getStatus().toUpperCase();
+            String status = b.getStatus() != null ? b.getStatus().toUpperCase() : "";
             
-            // Check if this booking is Approved or Rejected
             if ("APPROVED".equals(status) || "REJECTED".equals(status)) {
-                // To avoid duplicate entries, check if we already created an alert for this booking ID
                 boolean alreadyNotified = false;
                 for (String pastMsg : existingNotifications) {
                     if (pastMsg.contains(bId)) {
@@ -42,21 +53,28 @@
                     }
                 }
                 
-                // If it's a new update, auto-generate the header notification alert!
                 if (!alreadyNotified) {
                     String icon = "APPROVED".equals(status) ? "✓" : "X";
+                    String stationLabel = bId;
+                    try { stationLabel = b.getStationName(); } catch(Exception e) {
+                        try { stationLabel = b.getStationId(); } catch(Exception ex) {}
+                    }
+                    
                     autoNotifDao.createNotification(
                         currentUser.getUserId(),
-                        icon + " Your booking (" + bId + ") for " + b.getStationName() + " has been " + status + " by the AJK!"
+                        icon + " Your booking (" + bId + ") for " + stationLabel + " has been " + status + " by the AJK!"
                     );
                 }
             }
         }
     }
-    // -------------------------------------------------------------
 
     // 3. Fetch final booking history to render below
-    List<Booking> myBookings = bDao.getBookingsByStudent(currentUser.getUserId());
+    // Mengambil data tempahan aktif dari jadual Booking database (Status: Pending / Approved)
+    List<Booking> myBookings = null;
+    try {
+        myBookings = bDao.getBookingsByStudent(currentUser.getUserId());
+    } catch(Exception e) {}
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,10 +102,6 @@
             <div class="alert" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">
                 <strong>Database Error!</strong> Booking failed to save.
             </div>
-        <% } else if ("system_crash".equals(request.getParameter("error"))) { %>
-            <div class="alert" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);">
-                <strong>System Crash!</strong> Please upload a standard .JPG or .PNG file.
-            </div>
         <% } %>
 
         <div class="card" style="text-align: left;">
@@ -105,12 +119,103 @@
                         </tr>
                     </thead>
                     <tbody>
-                    <% if(myBookings == null || myBookings.isEmpty()) { %>
+                    <% 
+                        boolean hasRows = false;
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+
+                        // FIRST: Render active bookings from database (Pending / Approved)
+                        // BAHAGIAN 1: Memaparkan rekod aktif yang wujud di dalam table booking database
+                        if (myBookings != null && !myBookings.isEmpty()) { 
+                            hasRows = true;
+                            for(Booking b : myBookings) { 
+                                String formattedDate = b.getBookingDate() != null ? sdf.format(b.getBookingDate()) : "N/A";
+                                String currentStatus = b.getStatus() != null ? b.getStatus().toLowerCase() : "";
+                                
+                                String displayStation = "Gaming Station";
+                                try { displayStation = b.getStationName(); } catch(Exception e) {
+                                    try { displayStation = b.getStationId(); } catch(Exception ex) {}
+                                }
+                                
+                                String displaySlot = "Standard Slot";
+                                try { displaySlot = b.getSlotTime(); } catch(Exception e) {
+                                    try { displaySlot = b.getSlotId(); } catch(Exception ex) {}
+                                }
+                        %>
+                            <tr>
+                                <td><strong><%= displayStation %></strong></td>
+                                <td><%= displaySlot %></td>
+                                <td><%= formattedDate %></td>
+                                <td style="font-weight: bold; color: #fbbf24;">RM <%= String.format("%.2f", b.getTotalPrice()) %></td>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <span class="badge status-<%= currentStatus %>" style="padding: 5px 12px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">
+                                        <%= currentStatus %>
+                                    </span>
+                                </td>
+                            </tr>
+                        <% 
+                            } 
+                        } 
+
+                        // SECOND: Reconstruct deleted rejected data from notification records 
+                        // BAHAGIAN 2: Membina semula data REJECTED daripada string mesej notifikasi secara berasingan
+                        if (existingNotifications != null && !existingNotifications.isEmpty()) {
+                            for (String note : existingNotifications) {
+                                
+                                // Menapis baris mesej notifikasi jika mengandungi penanda REJECTED atau cancelled
+                                if (note.contains("REJECTED") || note.contains("cancelled")) {
+                                    hasRows = true;
+                                    
+                                    String rejectedStation = "Gaming Station";
+                                    String rejectedSlot = "Cancelled Slot";
+                                    String rejectedDate = "N/A";
+                                    
+                                    // Mengekstrak nama stesen daripada ayat notifikasi secara dinamik
+                                    if (note.contains("for ")) {
+                                        try {
+                                            int startPos = note.indexOf("for ") + 4;
+                                            int endPos = note.indexOf(" has");
+                                            if (endPos > startPos) {
+                                                rejectedStation = note.substring(startPos, endPos);
+                                            }
+                                        } catch(Exception e) {}
+                                    }
+                                    
+                                    // Mengekstrak info masa sekiranya admin menyertakan timestamp di dalam kurungan [...]
+                                    if (note.contains("[") && note.contains("]")) {
+                                        try {
+                                            int startTime = note.lastIndexOf("[") + 1;
+                                            int endTime = note.lastIndexOf("]");
+                                            if (endTime > startTime) {
+                                                rejectedSlot = "Slot " + note.substring(startTime, endTime);
+                                            }
+                                        } catch(Exception e) {}
+                                    }
+                        %>
+                            <tr>
+                                <td><strong><%= rejectedStation %></strong></td>
+                                <td style="color: #94a3b8; font-style: italic;"><%= rejectedSlot %></td>
+                                <td style="color: #94a3b8;"><%= rejectedDate %></td>
+                                <td style="font-weight: bold; color: #94a3b8; text-decoration: line-through;">RM 0.00</td>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <span class="badge status-rejected" style="background-color: #ef4444; color: white; padding: 5px 12px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">
+                                        rejected
+                                    </span>
+                                </td>
+                            </tr>
+                        <%
+                                }
+                            }
+                        }
+
+                        // Paparan alternatif sekiranya langsung tiada data tempahan atau rekod notifikasi reject
+                        if (!hasRows) { 
+                    %>
                         <tr>
                             <td colspan="5" style="text-align:center; padding: 40px; color: #999;">
                                 Belum ada history booking. Jom main!
                             </td>
                         </tr>
+<<<<<<< Updated upstream
                     <% } else { 
                         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm a");
                         for(Booking b : myBookings) { 
@@ -133,6 +238,9 @@
                             </td>
                         </tr>
                     <% } } %>
+=======
+                    <% } %>
+>>>>>>> Stashed changes
                     </tbody>
                 </table>
             </div>
